@@ -1,9 +1,16 @@
+const API_KEY = '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'
+
 export async function generateDocuments(answers) {
   const prompt = buildPrompt(answers)
 
-  const response = await fetch('/api/generate', {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': API_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
     body: JSON.stringify({
       model: 'claude-opus-4-5',
       max_tokens: 8000,
