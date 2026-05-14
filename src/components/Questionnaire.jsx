@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { QUESTIONS, SECTIONS } from '../questions.js'
 import { generateDocuments } from '../api.js'
 import styles from './Questionnaire.module.css'
@@ -8,8 +8,7 @@ export default function Questionnaire({ onComplete, onBack }) {
   const [currentIdx, setCurrentIdx] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [apiKey, setApiKey] = useState('')
-  const [showApiPrompt, setShowApiPrompt] = useState(false)
+  const [showGenerate, setShowGenerate] = useState(false)
 
   const visibleQuestions = QUESTIONS.filter(q => !q.condition || q.condition(answers))
   const current = visibleQuestions[currentIdx]
@@ -44,7 +43,7 @@ export default function Questionnaire({ onComplete, onBack }) {
     if (currentIdx < visibleQuestions.length - 1) {
       setCurrentIdx(i => i + 1)
     } else {
-      setShowApiPrompt(true)
+      setShowGenerate(true)
     }
   }
 
@@ -54,45 +53,26 @@ export default function Questionnaire({ onComplete, onBack }) {
   }
 
   async function handleGenerate() {
-    if (!apiKey.trim()) {
-      setError('Please enter your Anthropic API key.')
-      return
-    }
     setLoading(true)
     setError(null)
     try {
-      const docs = await generateDocuments(answers, apiKey)
+      const docs = await generateDocuments(answers)
       onComplete(answers, docs)
     } catch (e) {
-      setError(e.message || 'Generation failed. Check your API key and try again.')
+      setError(e.message || 'Generation failed. Please try again.')
       setLoading(false)
     }
   }
 
-  if (showApiPrompt) {
+  if (showGenerate) {
     return (
       <div className={styles.page}>
         <div className={styles.apiCard}>
-          <div className={styles.apiIcon}>🔑</div>
-          <h2>Almost there</h2>
-          <p>To generate your documents, Lexly uses the Claude AI API. You need a free Anthropic API key — it takes 2 minutes to get one.</p>
-          <ol className={styles.apiSteps}>
-            <li>Go to <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></li>
-            <li>Create a free account and verify your email</li>
-            <li>Under "API Keys", click "Create Key" and copy it</li>
-            <li>Paste it below</li>
-          </ol>
-          <input
-            className={styles.apiInput}
-            type="password"
-            placeholder="sk-ant-..."
-            value={apiKey}
-            onChange={e => setApiKey(e.target.value)}
-          />
-          <p className={styles.apiNote}>Your key is never stored — it's used only for this session in your browser.</p>
+          <h2>Ready to generate</h2>
+          <p>All questions answered. Click below to generate your legal documents.</p>
           {error && <div className={styles.errorBox}>{error}</div>}
           <div className={styles.apiButtons}>
-            <button className={styles.backBtn} onClick={() => setShowApiPrompt(false)}>← Back</button>
+            <button className={styles.backBtn} onClick={() => setShowGenerate(false)}>← Back</button>
             <button className={styles.generateBtn} onClick={handleGenerate} disabled={loading}>
               {loading ? (
                 <span className={styles.loadingRow}>
